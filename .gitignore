@@ -1,0 +1,56 @@
+# Arquivos de compilação
+build/
+*.o
+*.so
+*.a
+*.exe
+sw420_monitor
+
+# Documentação gerada pelo Doxygen
+docs/html/
+docs/latex/
+docs/xml/
+
+# Logs e arquivos de dados
+logs/*.log
+logs/*.csv
+*.log
+
+# Arquivos temporários do sistema
+*~
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# IDEs e editores
+.vscode/
+.idea/
+*.pro.user
+*.vcxproj.user
+*.suo
+*.sln.docstates
+
+# Arquivos de configuração local
+config/local_*
+*.local
+
+# Arquivos de debug
+core
+*.core
+*.dmp
+
+# Cache e arquivos temporários do compilador
+.cache/
+*.pch
+*.gch
+
+# Arquivos específicos do ARM
+*.bin
+*.elf
+*.map
+
+# Arquivos de teste
+test_results/
+*.test
