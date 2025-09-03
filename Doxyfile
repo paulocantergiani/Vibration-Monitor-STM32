@@ -15,7 +15,7 @@ EXCLUDE                = arm-buildroot-linux-gnueabihf_sdk-buildroot/
 # Configurações de saída
 OUTPUT_DIRECTORY       = docs
 GENERATE_HTML          = YES
-GENERATE_LATEX         = NO
+GENERATE_LATEX         = YES
 HTML_OUTPUT            = html
 
 # Configurações de extração
