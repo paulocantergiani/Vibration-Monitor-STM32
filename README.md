@@ -1,37 +1,39 @@
 # STM32 Vibration Monitor
 
-A vibration monitoring system using STM32MP1 and SW-420 sensor.
+## Descrição
 
-## What it does
+Sistema de monitoramento de vibrações para STM32MP1 usando sensor SW-420. Monitora vibrações através da interface IIO do Linux embarcado.
 
-Monitors vibrations and movements using a digital vibration sensor. Sends data to a server via UDP network connection.
+## Compilação e Execução
 
-## Files
-
-- `src/sw420.h` - Sensor class header
-- `src/sw420.cpp` - Sensor class implementation  
-- `src/main.cpp` - Main program
-- `Makefile` - Build automation
-- `Doxyfile` - Documentation config
-
-## Requirements
-
-- ARM toolchain: `arm-buildroot-linux-gnueabihf-g++`
-- Doxygen (for docs)
-
-## Usage
-
-### Compile
 ```bash
+# Compilar
+make clean
 make
-```
 
-### Generate docs
-```bash
+# Deploy na placa
+make deploy
+
+# Executar na placa
+ssh root@192.168.42.2
+./VibrationMonitor
+
+# Gerar documentação
 make docs
 ```
 
-### Deploy to STM32MP1
-```bash
-make deploy
-```
+## Estrutura do Código
+
+- **Classe SW420** (`src/sw420.h`, `src/sw420.cpp`):
+  - `SW420(path)`: Construtor
+  - `init()`: Inicializa sensor
+  - `readRaw()`: Lê valor analógico bruto
+  - `read()`: Detecta vibração (threshold >= 65535)
+
+- **Main** (`src/main.cpp`): Loop de monitoramento a cada 500ms
+
+## Dependências
+
+- ARM toolchain: `arm-buildroot-linux-gnueabihf-g++`
+- Doxygen (documentação)
+- SSH/SCP para deploy (IP: 192.168.42.2)
