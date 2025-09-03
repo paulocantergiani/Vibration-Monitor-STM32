@@ -1,75 +1,80 @@
-# Makefile para compilação do projeto SW-420
-# Projeto Monitoramento Inteligente de Carga
+#################################################################
+## Variáveis de Execução
+#################################################################
 
-# Configurações do compilador
-CXX = arm-buildroot-linux-gnueabihf-g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -O2 -pthread
+# Nome do programa
+TARGET      := VibrationMonitor
 
-# Diretórios e arquivos
-SRC_DIR = src
-TARGET = sw420_monitor
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,%.o,$(SOURCES))
-# Correção para o alvo de verificação de sintaxe
-CHECK_SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/sw420.cpp
+# Fontes do projeto
+SRCDIR      := src
+SRC         := $(wildcard $(SRCDIR)/*.cpp)
+OBJ         := $(SRC:.cpp=.o)
 
-# Regra principal
+# IP e usuário da placa
+# Ainda precisamos da placa para descobrir mais
+PLACA_USER  := root
+PLACA_IP    := 192.168.42.2
+PLACA_PATH  := /root
+
+# Local da Pasta Latex
+LATEX_PATH  := docs/latex
+
+# Caminhos Ligados À Compilação
+CXX         := arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-g++
+SYSROOT     := arm-buildroot-linux-gnueabihf_sdk-buildroot/arm-buildroot-linux-gnueabihf/sysroot
+CXXFLAGS    := --sysroot=$(SYSROOT) -Wall -O2 -I$(SRCDIR)
+
+
+
+#################################################################
+## Comandos de Execução
+#################################################################
+
+# Executando de forma geral
 all: $(TARGET)
 
-# Compilação do executável
-$(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
-	@echo "Compilação concluída: $(TARGET)"
+$(TARGET): $(OBJ)
+	@echo "\e[1;36;40m[INFO] Linkando Binário Para Placa...\e[0m"
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET)
 
-# Compilação dos objetos
-# Esta regra agora busca os fontes em $(SRC_DIR)/
-%.o: $(SRC_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+%.o: %.cpp
+	@echo "\e[1;36;40m[INFO] Compilando $<...\e[0m"
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Limpeza dos arquivos compilados
-clean:
-	rm -f $(OBJECTS) $(TARGET)
-	@echo "Arquivos de compilação removidos"
+# Executando de forma a debugar nosso código.
+debug:
+	@echo "\e[1;36;40m[INFO] Buildando Binário Para Debugação...\e[0m"
+	@g++ $(CXXFLAGS:-I$(SRCDIR)=) -I$(SRCDIR) $(SRC) -o debug_$(TARGET)
+	@echo "\e[1;36;40m[INFO] Executando Binário de Debug...\e[0m"
+	@./debug_$(TARGET)
+	@rm -f debug_$(TARGET)
 
-# Instalação no kit (via SCP)
-# Uso: make install IP=192.168.42.2
-install: $(TARGET)
-	@if [ -z "$(IP)" ]; then \
-		echo "Erro: Especifique o IP do kit. Exemplo: make install IP=192.168.42.2"; \
-		exit 1; \
-	fi
-	scp $(TARGET) root@$(IP):/home/root/
-	@echo "Executável enviado para root@$(IP):/home/root/"
 
-# Execução remota no kit
-# Uso: make run IP=192.168.42.2
-run: install
-	ssh root@$(IP) "cd /home/root && ./$(TARGET)"
+# Enviando Programas Para Placa
+deploy: $(TARGET)
+	@echo "\e[1;36;40m[INFO] Enviando Binário Para Placa...\e[0m"
+	scp -O $(TARGET) $(PLACA_USER)@$(PLACA_IP):$(PLACA_PATH)/
+	@echo "\e[1;36;40m[INFO] Ajustando Permissão de Execução...\e[0m"
+	ssh $(PLACA_USER)@$(PLACA_IP) \
+		"chmod +x $(PLACA_PATH)/$(TARGET)"
+	# Adicionar '&& $(PLACA_PATH)/$(TARGET)'
+	# executará o programa na placa
 
-# Geração da documentação Doxygen
+
+# Gerando Documentação
 docs:
-	@if command -v doxygen >/dev/null 2>&1; then \
-		doxygen Doxyfile; \
-		echo "Documentação gerada em ./docs/html/"; \
-	else \
-		echo "Erro: Doxygen não encontrado"; \
-	fi
+	@echo "\e[1;36;40m[INFO] Gerando HTML e LATEX com Doxygen\e[0m"
+	@doxygen Doxyfile
+	@echo "\e[1;36;40m[INFO] Compilando PDF na pasta docs/latex\e[0m"
+	@$(MAKE) -C $(LATEX_PATH)
+	@echo "\e[1;36;40m[INFO] Trazendo PDF para diretório padrão\e[0m"
+	@mv $(LATEX_PATH)/refman.pdf Documentation.pdf
 
-# Verificação de sintaxe
-check:
-	$(CXX) $(CXXFLAGS) -fsyntax-only $(CHECK_SOURCES)
-	@echo "Verificação de sintaxe concluída"
 
-# Debug - compilação com símbolos de debug
-debug: CXXFLAGS += -g -DDEBUG
-debug: clean $(TARGET)
+# Limpamos 
+clean:
+	@rm -rf docs/html docs/latex $(OBJ) $(TARGET) debug_$(TARGET)
+	@echo "\e[1;36;40m[INFO] Arquivos de compilação removidos\e[0m" 
 
-# Informações sobre o projeto
-info:
-	@echo "Projeto: Monitoramento SW-420"
-	@echo "Compilador: $(CXX)"
-	@echo "Flags: $(CXXFLAGS)"
-	@echo "Arquivos fonte: $(SOURCES)"
-	@echo "Executável: $(TARGET)"
 
-.PHONY: all clean install run docs check debug info
+.PHONY: all debug deploy docs clean

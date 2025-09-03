@@ -5,6 +5,7 @@ build/
 *.a
 *.exe
 sw420_monitor
+arm-buildroot-linux-gnueabihf_sdk-buildroot
 
 # Documentação gerada pelo Doxygen
 docs/html/

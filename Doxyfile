@@ -10,7 +10,7 @@ PROJECT_BRIEF          = "Sistema de monitoramento de vibração para cargas sen
 INPUT                  = .
 FILE_PATTERNS          = *.cpp *.h
 RECURSIVE              = YES
-EXCLUDE                = 
+EXCLUDE                = arm-buildroot-linux-gnueabihf_sdk-buildroot/
 
 # Configurações de saída
 OUTPUT_DIRECTORY       = docs
