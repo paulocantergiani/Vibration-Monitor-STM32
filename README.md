@@ -28,6 +28,8 @@ Vibration-Monitor-STM32/
 ├── src/
 │   ├── sw420.h          # Header da classe SW420
 │   ├── sw420.cpp        # Implementação da classe SW420
+│   ├── udpclient.h      # Header da classe UDPClient
+│   ├── udpclient.cpp    # Implementação da classe UDPClient
 │   └── main.cpp         # Programa principal
 ├── Makefile             # Build system
 ├── Doxyfile             # Configuração do Doxygen
@@ -51,15 +53,174 @@ Implementa o driver do sensor com encapsulamento orientado a objetos.
 
 **Localização:** `src/sw420.h:19-60` e `src/sw420.cpp:1-68`
 
+### Classe UDPClient
+
+Implementa a comunicação UDP para envio de dados ao servidor central.
+
+**Métodos públicos:**
+- `UDPClient(server_ip, server_port, sensor_id)`: Construtor com configurações de rede
+- `bool init()`: Inicializa o socket UDP
+- `bool sendData(value, unit)`: Envia dados do sensor via UDP
+- `bool isConnected()`: Verifica status da conexão
+
+**Atributos privados:**
+- `server_ip_`: Endereço IP do servidor
+- `server_port_`: Porta do servidor
+- `sensor_id_`: Identificador único do sensor
+- `sock_fd_`: File descriptor do socket
+- `server_addr_`: Estrutura de endereço do servidor
+
+**Localização:** `src/udpclient.h` e `src/udpclient.cpp`
+
 ### Programa Principal
 
 O arquivo `main.cpp` implementa:
 - Inicialização do sensor
+- Inicialização do cliente UDP
 - Loop de monitoramento contínuo (leitura a cada 500ms)
 - Exibição de valores brutos e estado de vibração
+- Envio de dados via UDP para servidor central
 - Tratamento de erros
 
-**Localização:** `src/main.cpp:1-69`
+**Localização:** `src/main.cpp:1-93`
+
+---
+
+## Protocolo de Comunicação UDP
+
+### Visão Geral
+
+O sistema utiliza o protocolo **UDP (User Datagram Protocol)** para transmissão em tempo real dos dados do sensor para um servidor central de monitoramento. UDP foi escolhido por:
+- **Baixa latência**: Ideal para monitoramento em tempo real
+- **Simplicidade**: Sem overhead de estabelecimento de conexão
+- **Eficiência**: Menor consumo de recursos no sistema embarcado
+
+### Formato da Mensagem
+
+As mensagens são enviadas no formato **CSV (Comma-Separated Values)** para facilidade de parsing e baixo overhead.
+
+**Estrutura:**
+```
+SENSOR_ID,TIMESTAMP,VALUE,UNIT
+```
+
+**Campos:**
+1. **SENSOR_ID** (string): Identificador único do sensor/grupo
+   - Exemplo: `SW420_VIBRATION`, `SW420_GRUPO_10`
+
+2. **TIMESTAMP** (string): Data e hora da leitura no formato ISO 8601
+   - Formato: `YYYY-MM-DDTHH:MM:SS`
+   - Exemplo: `2025-10-22T15:30:45`
+
+3. **VALUE** (int): Valor lido do sensor
+   - Faixa: 0-65535 (ADC de 16 bits)
+   - Exemplo: `45000`
+
+4. **UNIT** (string): Unidade de medida
+   - Padrão: `ADC` (valor bruto do conversor analógico-digital)
+   - Outros possíveis: `mV`, `g`, etc.
+
+### Exemplo de Mensagem
+
+```
+SW420_VIBRATION,2025-10-22T15:30:45,45000,ADC
+```
+
+### Configuração de Rede
+
+**No Kit STM32MP1-DK1:**
+- IP: `192.168.42.2` (padrão)
+- Porta de origem: Dinâmica (alocada pelo sistema)
+
+**No Servidor (PC):**
+- IP: `192.168.42.10` (configurável em `src/main.cpp:38`)
+- Porta: `5000` (configurável em `src/main.cpp:39`)
+- Protocolo: UDP
+
+### Fluxo de Comunicação
+
+```
+┌─────────────────┐                      ┌─────────────────┐
+│   STM32MP1-DK1  │                      │  Servidor (PC)  │
+│  192.168.42.2   │                      │  192.168.42.10  │
+└────────┬────────┘                      └────────┬────────┘
+         │                                        │
+         │  1. Leitura do sensor (500ms)         │
+         ├────────────────────────────────────>  │
+         │                                        │
+         │  2. Envia pacote UDP:                 │
+         │     SW420_VIBRATION,2025-...,45000,ADC│
+         ├────────────────────────────────────>  │
+         │                                        │
+         │  3. Servidor processa e exibe         │
+         │     (sem confirmação - UDP)           │
+         │                                        │
+         │  4. Aguarda 500ms                     │
+         │                                        │
+         │  5. Repete o ciclo                    │
+         └───────────────────────────────────>   │
+```
+
+### Implementação
+
+A classe `UDPClient` encapsula toda a lógica de comunicação UDP:
+
+```cpp
+// Configuração
+UDPClient udp_client("192.168.42.10", 5000, "SW420_VIBRATION");
+
+// Inicialização
+udp_client.init();
+
+// Envio de dados
+int sensor_value = sensor.readRaw();
+udp_client.sendData(sensor_value, "ADC");
+```
+
+### Configuração do Servidor
+
+Para receber os dados, execute um servidor UDP no PC. Exemplo em Python:
+
+```python
+import socket
+
+# Configuração
+UDP_IP = "192.168.42.10"
+UDP_PORT = 5000
+
+# Cria socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
+
+print(f"Servidor UDP escutando em {UDP_IP}:{UDP_PORT}")
+
+# Loop de recepção
+while True:
+    data, addr = sock.recvfrom(1024)
+    message = data.decode('utf-8')
+    print(f"Recebido de {addr}: {message}")
+
+    # Parseia CSV
+    sensor_id, timestamp, value, unit = message.split(',')
+    print(f"  Sensor: {sensor_id}")
+    print(f"  Timestamp: {timestamp}")
+    print(f"  Valor: {value} {unit}")
+```
+
+### Personalização
+
+Para alterar as configurações de rede, edite o arquivo `src/main.cpp`:
+
+```cpp
+// Linha 38: IP do servidor
+const std::string server_ip = "192.168.42.10";
+
+// Linha 39: Porta do servidor
+const int server_port = 5000;
+
+// Linha 40: Identificador do sensor
+const std::string sensor_id = "SW420_VIBRATION";
+```
 
 ---
 
@@ -187,17 +348,60 @@ cd /root
 **Saída esperada:**
 ```
 [INFO] SW420 inicializado em /sys/bus/iio/devices/iio:device0/in_voltage13_raw
+[INFO] Cliente UDP inicializado para 192.168.42.10:5000
 [INFO] Monitorando sensor de vibração SW-420...
 [INFO] Pressione Ctrl+C para encerrar
 
 [INFO] Sem vibração. Valor: 125
+[UDP] Dados enviados ao servidor
 [INFO] Sem vibração. Valor: 150
+[UDP] Dados enviados ao servidor
 [ALERTA] Vibração detectada! Valor: 45000
+[UDP] Dados enviados ao servidor
 [ALERTA] Vibração detectada! Valor: 52000
+[UDP] Dados enviados ao servidor
 [INFO] Sem vibração. Valor: 200
+[UDP] Dados enviados ao servidor
 ```
 
-### 4. Encerramento
+### 4. Configuração do Servidor UDP (PC)
+
+Antes de executar o programa na placa, configure um servidor UDP no PC para receber os dados:
+
+**Opção 1: Servidor Python simples**
+
+Crie um arquivo `udp_server.py`:
+
+```python
+import socket
+
+UDP_IP = "192.168.42.10"  # IP do PC (deve corresponder à configuração da placa)
+UDP_PORT = 5000
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((UDP_IP, UDP_PORT))
+
+print(f"Servidor UDP escutando em {UDP_IP}:{UDP_PORT}")
+print("Aguardando dados...\n")
+
+while True:
+    data, addr = sock.recvfrom(1024)
+    message = data.decode('utf-8')
+    print(f"[{addr[0]}:{addr[1]}] {message}")
+```
+
+Execute:
+```bash
+python3 udp_server.py
+```
+
+**Opção 2: Usar netcat (nc)**
+
+```bash
+nc -ul 5000
+```
+
+### 5. Encerramento
 
 Pressione `Ctrl+C` para interromper o programa.
 
@@ -262,9 +466,8 @@ Este comando:
 **Disciplina:** Programação Aplicada
 **Instituição:** Instituto Militar de Engenharia (IME)
 **Projeto:** Monitoramento Inteligente de Carga
-**Entrega:** 2 (prazo: 10/09/2025)
 
-### Checklist da Entrega 2
+### Checklist da Entrega 2 (prazo: 10/09/2025)
 
 - [x] Código-fonte em C++ documentado com Doxygen
 - [x] Programa funcional no kit de desenvolvimento
@@ -272,6 +475,15 @@ Este comando:
 - [x] Instruções de compilação documentadas
 - [x] Instruções de execução documentadas
 - [x] Classe encapsulada e sem variáveis globais
+
+### Checklist da Entrega 3 (prazo: 22/10/2025)
+
+- [x] Envio da leitura do sensor via UDP para servidor
+- [x] Protocolo de comunicação documentado (formato CSV)
+- [x] Classe UDPClient implementada e documentada
+- [x] Integração com o programa principal
+- [x] Instruções atualizadas no README.md
+- [x] Exemplo de servidor UDP fornecido
 
 ---
 
