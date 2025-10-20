@@ -1,82 +1,80 @@
 #################################################################
+## Makefile - Sensor de Vibração SW-420
+## Projeto: Monitoramento Inteligente de Carga
+## Instituto Militar de Engenharia
+#################################################################
+
+#################################################################
 ## Variáveis de Execução
 #################################################################
 
-# Nome do programa
+# Nome do executável
 TARGET      := VibrationMonitor
 
-# Fontes do projeto
+# Diretórios e arquivos fonte
 SRCDIR      := src
 SRC         := $(wildcard $(SRCDIR)/*.cpp)
 OBJ         := $(SRC:.cpp=.o)
 
-# IP e usuário da placa
+# Configurações da placa STM32MP1-DK1
 PLACA_USER  := root
 PLACA_IP    := 192.168.42.2
 PLACA_PATH  := /root
 
-# Local da Pasta Latex
+# Diretório da documentação LaTeX (gerada pelo Doxygen)
 LATEX_PATH  := docs/latex
 
-# Caminhos Ligados À Compilação
+# Toolchain para compilação cruzada ARM
 CXX         := arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-g++
 SYSROOT     := arm-buildroot-linux-gnueabihf_sdk-buildroot/arm-buildroot-linux-gnueabihf/sysroot
 CXXFLAGS    := --sysroot=$(SYSROOT) -Wall -O2 -I$(SRCDIR)
-# --- ALTERAÇÃO ---
-# Adicionada a biblioteca C++ do libgpiod para a linkagem
 LIBS        :=
 
 
 
 #################################################################
-## Comandos de Execução
+## Regras de Compilação
 #################################################################
 
-# Executando de forma geral
+# Alvo padrão: compila o executável
 all: $(TARGET)
 
-# --- ALTERAÇÃO ---
-# Adicionado $(LIBS) ao final do comando para linkar a biblioteca
+# Linkagem do executável final
 $(TARGET): $(OBJ)
-	@echo "\e[1;36;40m[INFO] Linkando Binário Para Placa...\e[0m"
+	@echo "\e[1;36;40m[INFO] Linkando binário para placa...\e[0m"
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LIBS)
+	@echo "\e[1;32;40m[OK] Binário '$(TARGET)' gerado com sucesso!\e[0m"
 
+# Compilação de arquivos objeto
 %.o: %.cpp
 	@echo "\e[1;36;40m[INFO] Compilando $<...\e[0m"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Executando de forma a debugar nosso código.
-debug:
-	@echo "\e[1;36;40m[INFO] Buildando Binário Para Debugação...\e[0m"
-	@g++ $(CXXFLAGS:-I$(SRCDIR)=) -I$(SRCDIR) $(SRC) -o debug_$(TARGET) $(LIBS)
-	@echo "\e[1;36;40m[INFO] Executando Binário de Debug...\e[0m"
-	@./debug_$(TARGET)
-	@rm -f debug_$(TARGET)
+#################################################################
+## Comandos Auxiliares
+#################################################################
 
-
-# Enviando Programas Para Placa
+# Deploy: envia o executável para a placa STM32MP1-DK1
 deploy: $(TARGET)
-	@echo "\e[1;36;40m[INFO] Enviando Binário Para Placa...\e[0m"
-	scp -O $(TARGET) $(PLACA_USER)@$(PLACA_IP):$(PLACA_PATH)/
-	@echo "\e[1;36;40m[INFO] Ajustando Permissão de Execução...\e[0m"
-	ssh $(PLACA_USER)@$(PLACA_IP) \
-		"chmod +x $(PLACA_PATH)/$(TARGET)"
+	@echo "\e[1;36;40m[INFO] Enviando binário para placa...\e[0m"
+	@scp -O $(TARGET) $(PLACA_USER)@$(PLACA_IP):$(PLACA_PATH)/
+	@echo "\e[1;36;40m[INFO] Ajustando permissões de execução...\e[0m"
+	@ssh $(PLACA_USER)@$(PLACA_IP) "chmod +x $(PLACA_PATH)/$(TARGET)"
+	@echo "\e[1;32;40m[OK] Deploy concluído! Execute com: ssh $(PLACA_USER)@$(PLACA_IP) './$(TARGET)'\e[0m"
 
-
-# Gerando Documentação
+# Documentação: gera a documentação com Doxygen e compila o PDF
 docs:
-	@echo "\e[1;36;40m[INFO] Gerando HTML e LATEX com Doxygen\e[0m"
+	@echo "\e[1;36;40m[INFO] Gerando documentação com Doxygen...\e[0m"
 	@doxygen Doxyfile
-	@echo "\e[1;36;40m[INFO] Compilando PDF na pasta docs/latex\e[0m"
+	@echo "\e[1;36;40m[INFO] Compilando PDF da documentação...\e[0m"
 	@$(MAKE) -C $(LATEX_PATH)
-	@echo "\e[1;36;40m[INFO] Trazendo PDF para diretório padrão\e[0m"
+	@echo "\e[1;36;40m[INFO] Movendo PDF para o diretório raiz...\e[0m"
 	@mv $(LATEX_PATH)/refman.pdf Documentation.pdf
+	@echo "\e[1;32;40m[OK] Documentação gerada: Documentation.pdf\e[0m"
 
-
-# Limpamos
+# Limpeza: remove arquivos compilados e documentação
 clean:
 	@rm -rf docs/html docs/latex $(OBJ) $(TARGET) debug_$(TARGET)
-	@echo "\e[1;36;40m[INFO] Arquivos de compilação removidos\e[0m"
+	@echo "\e[1;33;40m[INFO] Arquivos de compilação removidos\e[0m"
 
-
-.PHONY: all debug deploy docs clean
+.PHONY: all deploy docs clean
