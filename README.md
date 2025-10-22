@@ -179,33 +179,7 @@ udp_client.sendData(sensor_value, "ADC");
 
 ### Configuração do Servidor
 
-Para receber os dados, execute um servidor UDP no PC. Exemplo em Python:
-
-```python
-import socket
-
-# Configuração
-UDP_IP = "192.168.42.10"
-UDP_PORT = 5000
-
-# Cria socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
-
-print(f"Servidor UDP escutando em {UDP_IP}:{UDP_PORT}")
-
-# Loop de recepção
-while True:
-    data, addr = sock.recvfrom(1024)
-    message = data.decode('utf-8')
-    print(f"Recebido de {addr}: {message}")
-
-    # Parseia CSV
-    sensor_id, timestamp, value, unit = message.split(',')
-    print(f"  Sensor: {sensor_id}")
-    print(f"  Timestamp: {timestamp}")
-    print(f"  Valor: {value} {unit}")
-```
+Para receber os dados, execute um servidor UDP no PC. Exemplo em Python no arquivo udp_server.py
 
 ### Personalização
 
@@ -235,7 +209,6 @@ const std::string sensor_id = "SW420_VIBRATION";
   - GND → GND (pino CN16)
   - AOUT → ADC (ex: in_voltage13_raw via Arduino D4)
 
-⚠️ **IMPORTANTE:** Sempre alimente o sensor com **3.3V**. Nunca use 5V, pois pode danificar o kit!
 
 ### Software
 
@@ -370,26 +343,6 @@ Antes de executar o programa na placa, configure um servidor UDP no PC para rece
 
 **Opção 1: Servidor Python simples**
 
-Crie um arquivo `udp_server.py`:
-
-```python
-import socket
-
-UDP_IP = "192.168.42.10"  # IP do PC (deve corresponder à configuração da placa)
-UDP_PORT = 5000
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
-
-print(f"Servidor UDP escutando em {UDP_IP}:{UDP_PORT}")
-print("Aguardando dados...\n")
-
-while True:
-    data, addr = sock.recvfrom(1024)
-    message = data.decode('utf-8')
-    print(f"[{addr[0]}:{addr[1]}] {message}")
-```
-
 Execute:
 ```bash
 python3 udp_server.py
@@ -458,41 +411,3 @@ Este comando:
 1. Verifique as conexões (VCC, GND, AOUT)
 2. Teste o sensor com multímetro
 3. Ajuste o threshold em `src/sw420.cpp:19` se necessário
-
----
-
-## Informações de Entrega
-
-**Disciplina:** Programação Aplicada
-**Instituição:** Instituto Militar de Engenharia (IME)
-**Projeto:** Monitoramento Inteligente de Carga
-
-### Checklist da Entrega 2 (prazo: 10/09/2025)
-
-- [x] Código-fonte em C++ documentado com Doxygen
-- [x] Programa funcional no kit de desenvolvimento
-- [x] Leitura correta dos dados do sensor
-- [x] Instruções de compilação documentadas
-- [x] Instruções de execução documentadas
-- [x] Classe encapsulada e sem variáveis globais
-
-### Checklist da Entrega 3 (prazo: 22/10/2025)
-
-- [x] Envio da leitura do sensor via UDP para servidor
-- [x] Protocolo de comunicação documentado (formato CSV)
-- [x] Classe UDPClient implementada e documentada
-- [x] Integração com o programa principal
-- [x] Instruções atualizadas no README.md
-- [x] Exemplo de servidor UDP fornecido
-
----
-
-## Autores
-
-Grupo responsável pelo sensor SW-420 (Vibração)
-
----
-
-## Licença
-
-Projeto acadêmico - Instituto Militar de Engenharia
