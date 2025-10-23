@@ -33,8 +33,49 @@ Vibration-Monitor-STM32/
 │   └── main.cpp         # Programa principal
 ├── Makefile             # Build system
 ├── Doxyfile             # Configuração do Doxygen
+├── class_diagram.gv     # Diagrama UML simplificado (Graphviz)
+├── class_diagram.png    # Diagrama UML simplificado (PNG)
+├── class_diagram_detailed.gv     # Diagrama UML detalhado (Graphviz)
+├── class_diagram_detailed.png    # Diagrama UML detalhado (PNG)
 ├── README.md            # Este arquivo
 └── Documentation.pdf    # Documentação gerada (após make docs)
+```
+
+### Diagramas UML
+
+O projeto inclui dois diagramas UML em formato de blobs criados com **Graphviz**:
+
+#### 1. **Diagrama Simplificado** (`class_diagram.gv` / `class_diagram.png`)
+
+Mostra a arquitetura principal com as duas classes principais e a aplicação:
+
+- **SW420**: Classe responsável pela leitura do sensor de vibração
+  - Atributos: `iio_path_`, `threshold_`
+  - Métodos: `init()`, `readRaw()`, `read()`
+
+- **UDPClient**: Classe responsável pela comunicação em rede
+  - Atributos: `server_ip_`, `server_port_`, `sensor_id_`, `sock_fd_`, `server_addr_`, `connected_`
+  - Métodos: `init()`, `sendData()`, `isConnected()`
+
+- **main.cpp**: Aplicação principal que orquestra as duas classes
+
+#### 2. **Diagrama Detalhado** (`class_diagram_detailed.gv` / `class_diagram_detailed.png`)
+
+Mostra uma visão mais completa do sistema incluindo:
+
+- **SW420** (Sensor de Vibração) - conexão com o hardware
+- **UDPClient** (Cliente de Rede) - implementação da comunicação
+- **Aplicação Principal** (main.cpp) - fluxo de execução
+- **UDP Protocol** - formato CSV dos dados
+- **Hardware** - especificações do sensor SW-420
+
+#### Editando os Diagramas
+
+Os arquivos `.gv` (Graphviz) podem ser editados com qualquer editor de texto. Para regenerar os PNGs após editar:
+
+```bash
+dot -Tpng class_diagram.gv -o class_diagram.png
+dot -Tpng class_diagram_detailed.gv -o class_diagram_detailed.png
 ```
 
 ### Classe SW420

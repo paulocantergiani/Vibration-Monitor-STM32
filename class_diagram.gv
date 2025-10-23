@@ -1,0 +1,79 @@
+digraph ClassDiagram {
+    rankdir=LR;
+    bgcolor="#ffffff";
+    node [shape=box, style="rounded,filled", fillcolor="#e1f5ff", color="#01579b", fontname="Arial", fontsize="10"];
+    edge [color="#01579b", fontname="Arial", fontsize="9"];
+
+    // SW420 Class
+    SW420 [label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10">
+            <TR><TD COLSPAN="2" BGCOLOR="#01579b" PORT="title"><FONT COLOR="white"><B>SW420</B></FONT></TD></TR>
+            <TR><TD COLSPAN="2" BGCOLOR="#b3e5fc"><I>Driver para sensor de vibração SW-420</I></TD></TR>
+            <TR><TD COLSPAN="2" HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#d32f2f">Atributos Privados</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">- iio_path_: string</TD><TD ALIGN="LEFT">Caminho do arquivo IIO</TD></TR>
+            <TR><TD ALIGN="LEFT">- threshold_: int</TD><TD ALIGN="LEFT">Limiar de detecção (padrão: 32000)</TD></TR>
+            <TR><TD COLSPAN="2" HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#1976d2">Métodos Públicos</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">+ SW420(const string&amp;)</TD><TD ALIGN="LEFT">Construtor</TD></TR>
+            <TR><TD ALIGN="LEFT">+ init(): void</TD><TD ALIGN="LEFT">Inicializa o sensor</TD></TR>
+            <TR><TD ALIGN="LEFT">+ readRaw(): int</TD><TD ALIGN="LEFT">Lê valor bruto do ADC (0-65535)</TD></TR>
+            <TR><TD ALIGN="LEFT">+ read(): bool</TD><TD ALIGN="LEFT">Lê estado digital (true=vibração)</TD></TR>
+        </TABLE>
+    >, fillcolor="#e3f2fd"];
+
+    // UDPClient Class
+    UDPClient [label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10">
+            <TR><TD COLSPAN="2" BGCOLOR="#01579b" PORT="title"><FONT COLOR="white"><B>UDPClient</B></FONT></TD></TR>
+            <TR><TD COLSPAN="2" BGCOLOR="#b3e5fc"><I>Cliente UDP para envio de dados</I></TD></TR>
+            <TR><TD COLSPAN="2" HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#d32f2f">Atributos Privados</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">- server_ip_: string</TD><TD ALIGN="LEFT">IP do servidor</TD></TR>
+            <TR><TD ALIGN="LEFT">- server_port_: int</TD><TD ALIGN="LEFT">Porta do servidor</TD></TR>
+            <TR><TD ALIGN="LEFT">- sensor_id_: string</TD><TD ALIGN="LEFT">Identificador único do sensor</TD></TR>
+            <TR><TD ALIGN="LEFT">- sock_fd_: int</TD><TD ALIGN="LEFT">File descriptor do socket</TD></TR>
+            <TR><TD ALIGN="LEFT">- server_addr_: sockaddr_in</TD><TD ALIGN="LEFT">Estrutura de endereço</TD></TR>
+            <TR><TD ALIGN="LEFT">- connected_: bool</TD><TD ALIGN="LEFT">Estado da conexão</TD></TR>
+            <TR><TD COLSPAN="2" HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#1976d2">Métodos Públicos</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">+ UDPClient(const string&amp;, int, const string&amp;)</TD><TD ALIGN="LEFT">Construtor</TD></TR>
+            <TR><TD ALIGN="LEFT">+ ~UDPClient()</TD><TD ALIGN="LEFT">Destrutor</TD></TR>
+            <TR><TD ALIGN="LEFT">+ init(): bool</TD><TD ALIGN="LEFT">Inicializa socket UDP</TD></TR>
+            <TR><TD ALIGN="LEFT">+ sendData(int, const string&amp;): bool</TD><TD ALIGN="LEFT">Envia dados via UDP</TD></TR>
+            <TR><TD ALIGN="LEFT">+ isConnected(): bool</TD><TD ALIGN="LEFT">Verifica conexão</TD></TR>
+            <TR><TD COLSPAN="2" HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#7b1fa2">Métodos Privados</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">- getTimestamp(): string</TD><TD ALIGN="LEFT">Timestamp ISO 8601</TD></TR>
+        </TABLE>
+    >, fillcolor="#f3e5f5"];
+
+    // Main Application
+    MainApp [label=<
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10">
+            <TR><TD BGCOLOR="#4caf50" PORT="title"><FONT COLOR="white"><B>main.cpp</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#c8e6c9"><I>Programa Principal</I></TD></TR>
+            <TR><TD HEIGHT="2"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#1976d2">Funcionalidades:</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">• Inicialização do sensor SW420</TD></TR>
+            <TR><TD ALIGN="LEFT">• Inicialização do cliente UDP</TD></TR>
+            <TR><TD ALIGN="LEFT">• Loop de monitoramento (500ms)</TD></TR>
+            <TR><TD ALIGN="LEFT">• Envio de dados ao servidor</TD></TR>
+            <TR><TD ALIGN="LEFT">• Tratamento de erros</TD></TR>
+        </TABLE>
+    >, fillcolor="#e8f5e9"];
+
+    // Relationships
+    MainApp -> SW420 [label="uses", style="solid", penwidth="2"];
+    MainApp -> UDPClient [label="uses", style="solid", penwidth="2"];
+
+    // Legend
+    Legend [label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="3" CELLPADDING="5">
+            <TR><TD COLSPAN="2" BGCOLOR="#424242"><FONT COLOR="white"><B>Legenda</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#fff9c4">Classe</TD><TD ALIGN="LEFT">Componente do sistema</TD></TR>
+            <TR><TD BGCOLOR="#bbdefb">Atributo</TD><TD ALIGN="LEFT">Propriedade privada</TD></TR>
+            <TR><TD BGCOLOR="#c8e6c9">Função</TD><TD ALIGN="LEFT">Módulo principal</TD></TR>
+        </TABLE>
+    >, shape="box", fillcolor="#fafafa"];
+}

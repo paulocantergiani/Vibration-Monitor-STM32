@@ -1,0 +1,113 @@
+digraph DetailedClassDiagram {
+    // Graph configuration
+    rankdir=TB;
+    bgcolor="#f5f5f5";
+    node [shape=box, style="rounded,filled", fillcolor="#ffffff", color="#0277bd", fontname="Arial", fontsize="11", penwidth="2"];
+    edge [color="#0277bd", fontname="Arial", fontsize="10", penwidth="2"];
+
+    // SW420 Class - Blob style
+    SW420 [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8">
+            <TR><TD BGCOLOR="#0277bd" COLSPAN="1"><FONT COLOR="white" POINT-SIZE="14"><B>SW420</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#e1f5fe" HEIGHT="5"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>Sensor de Vibração</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#e1f5fe" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#d32f2f" POINT-SIZE="9"><B>Atributos Privados:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- iio_path_: string</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- threshold_: int</FONT></TD></TR>
+            <TR><TD BGCOLOR="#e1f5fe" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#1565c0" POINT-SIZE="9"><B>Métodos Públicos:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ SW420(path: string)</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ init(): void</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ readRaw(): int</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ read(): bool</FONT></TD></TR>
+        </TABLE>
+    >, fillcolor="#e1f5fe"];
+
+    // UDPClient Class - Blob style
+    UDPClient [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8">
+            <TR><TD BGCOLOR="#6a1b9a" COLSPAN="1"><FONT COLOR="white" POINT-SIZE="14"><B>UDPClient</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#f3e5f5" HEIGHT="5"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>Cliente de Rede</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#f3e5f5" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#d32f2f" POINT-SIZE="9"><B>Atributos Privados:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- server_ip_: string</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- server_port_: int</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- sensor_id_: string</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- sock_fd_: int</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- server_addr_: sockaddr_in</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- connected_: bool</FONT></TD></TR>
+            <TR><TD BGCOLOR="#f3e5f5" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#1565c0" POINT-SIZE="9"><B>Métodos Públicos:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ UDPClient(ip: string, port: int, id: string)</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ ~UDPClient()</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ init(): bool</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ sendData(value: int, unit: string): bool</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">+ isConnected(): bool</FONT></TD></TR>
+            <TR><TD BGCOLOR="#f3e5f5" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#7b1fa2" POINT-SIZE="9"><B>Métodos Privados:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">- getTimestamp(): string</FONT></TD></TR>
+        </TABLE>
+    >, fillcolor="#f3e5f5"];
+
+    // Main Application
+    MainApp [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8">
+            <TR><TD BGCOLOR="#2e7d32" COLSPAN="1"><FONT COLOR="white" POINT-SIZE="14"><B>Aplicação Principal</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#e8f5e9" HEIGHT="5"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>main.cpp</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#e8f5e9" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT COLOR="#1565c0" POINT-SIZE="9"><B>Fluxo Principal:</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">1. Inicializa sensor SW420</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">2. Inicializa cliente UDP</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">3. Loop de monitoramento</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">4. Lê sensor a cada 500ms</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">5. Envia dados ao servidor</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">6. Trata erros e exceções</FONT></TD></TR>
+        </TABLE>
+    >, fillcolor="#e8f5e9"];
+
+    // Relationship: MainApp uses SW420
+    MainApp -> SW420 [label="instancia", style="solid", arrowhead="vee", color="#0277bd"];
+
+    // Relationship: MainApp uses UDPClient
+    MainApp -> UDPClient [label="instancia", style="solid", arrowhead="vee", color="#6a1b9a"];
+
+    // Interface/Protocol box
+    Protocol [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8">
+            <TR><TD BGCOLOR="#e64a19" COLSPAN="1"><FONT COLOR="white" POINT-SIZE="14"><B>UDP Protocol</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#ffccbc" HEIGHT="5"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>Formato: CSV</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#ffccbc" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">SENSOR_ID,TIMESTAMP,VALUE,UNIT</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">Ex: SW420_VIBRATION,2025-10-22T15:30:45,45000,ADC</FONT></TD></TR>
+        </TABLE>
+    >, fillcolor="#ffccbc"];
+
+    UDPClient -> Protocol [label="envia", style="dashed", arrowhead="vee", color="#e64a19"];
+
+    // Sensor box
+    Sensor [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8">
+            <TR><TD BGCOLOR="#01579b" COLSPAN="1"><FONT COLOR="white" POINT-SIZE="14"><B>Hardware</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#b3e5fc" HEIGHT="5"></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10"><B>SW-420 Vibration Sensor</B></FONT></TD></TR>
+            <TR><TD BGCOLOR="#b3e5fc" HEIGHT="2"></TD></TR>
+            <HR/>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">Tensão: 3.3V - 5V</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">Interface: IIO (/sys/...)</FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">Saída: Analógica (ADC 16-bit)</FONT></TD></TR>
+        </TABLE>
+    >, fillcolor="#b3e5fc"];
+
+    SW420 -> Sensor [label="lê", style="dashed", arrowhead="vee", color="#01579b"];
+}
