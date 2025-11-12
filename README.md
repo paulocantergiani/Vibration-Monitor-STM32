@@ -1,184 +1,158 @@
-# Monitor de Vibração STM32MP1 - Sensor SW-420
+# Monitor de Vibração STM32MP1 – Sensor SW-420
 
-## Descrição do Projeto
+O **Monitor de Vibração STM32MP1** é um sistema embarcado desenvolvido para detectar e reportar vibrações em tempo real utilizando o sensor **SW-420**, integrado ao kit **STM32MP1-DK1**.  
+O objetivo é simples, mas essencial: transformar sinais físicos de vibração em informações claras, enviadas automaticamente a um servidor via **UDP**.  
 
-Sistema embarcado de monitoramento de vibrações desenvolvido para o kit **STM32MP1-DK1**, utilizando o sensor de vibração **SW-420**. O projeto faz parte da disciplina de **Programação Aplicada** do **Instituto Militar de Engenharia (IME)**.
-
-### Contexto
-
-Este sistema integra o projeto **Monitoramento Inteligente de Carga**, que visa detectar tentativas de violação, movimentação indevida ou comprometimento de integridade de cargas sensíveis durante transporte.
-
-### Sensor SW-420
-
-O **SW-420** é um sensor de vibração digital/analógico baseado em um interruptor de esfera condutora. Quando ocorre vibração, a esfera movimenta-se e altera o estado elétrico do sensor.
-
-**Características:**
-- Tensão de operação: 3.3V - 5V (usamos **3.3V** para compatibilidade com o STM32MP1)
-- Saída analógica proporcional à intensidade da vibração
-- Interface IIO (Industrial I/O) do Linux embarcado
+Este projeto une hardware, software embarcado e comunicação em rede, mostrando na prática como construir um sistema completo de aquisição e transmissão de dados.
 
 ---
 
-## Estrutura do Código
+## O Sensor SW-420 e o Kit STM32MP1
 
-### Arquivos do Projeto
+O **SW-420** é um sensor de vibração sensível a movimentos bruscos ou oscilações mecânicas. Ele utiliza uma pequena esfera condutora que, ao se mover, altera o estado elétrico do circuito interno.  
+No projeto, o sensor é alimentado a **3.3V** para garantir compatibilidade com o kit **STM32MP1-DK1**, que roda um sistema Linux embarcado com suporte à interface **IIO (Industrial I/O)**.  
+
+**Principais características do SW-420:**
+- Alimentação: 3.3V – 5V (usado em 3.3V no projeto)
+- Saída analógica proporcional à intensidade da vibração
+- Compatível com leitura via canal ADC (`in_voltageX_raw`)
+
+---
+
+## Arquitetura do Sistema
+
+O sistema é dividido em três partes principais: o **sensor de vibração**, o **software embarcado** e o **servidor remoto** que recebe os dados.
+
+![Diagrama de Arquitetura](class_diagram_detailed.png)
+
+1. O sensor SW-420 envia sinais analógicos ao ADC do STM32MP1.  
+2. O software embarcado lê os valores por meio da interface IIO.  
+3. As leituras são convertidas em dados e enviadas via UDP a um servidor remoto.  
+4. O servidor (como o *Vibration Monitor GUI* em Python) exibe as informações em tempo real.
+
+---
+
+## Contexto Acadêmico
+
+Este projeto foi desenvolvido como parte da disciplina **Programação Aplicada** do **Instituto Militar de Engenharia (IME)**.  
+Dentro do escopo do projeto **Monitoramento Inteligente de Carga**, o sistema tem como meta identificar **movimentações indevidas, impactos ou tentativas de violação** de cargas sensíveis durante o transporte.  
+
+A proposta é simples: aplicar conceitos de sistemas embarcados e redes para desenvolver uma solução funcional e didática.
+
+---
+
+## Estrutura do Código-Fonte
+
+O projeto é organizado de forma modular, permitindo manutenção e expansão futura.
 
 ```
 Vibration-Monitor-STM32/
 ├── src/
-│   ├── sw420.h          # Header da classe SW420
-│   ├── sw420.cpp        # Implementação da classe SW420
-│   ├── udpclient.h      # Header da classe UDPClient
-│   ├── udpclient.cpp    # Implementação da classe UDPClient
-│   └── main.cpp         # Programa principal
-├── Makefile             # Build system
-├── Doxyfile             # Configuração do Doxygen
-├── class_diagram.gv     # Diagrama UML simplificado (Graphviz)
-├── class_diagram.png    # Diagrama UML simplificado (PNG)
-├── class_diagram_detailed.gv     # Diagrama UML detalhado (Graphviz)
-├── class_diagram_detailed.png    # Diagrama UML detalhado (PNG)
-├── README.md            # Este arquivo
-└── Documentation.pdf    # Documentação gerada (após make docs)
+│   ├── sw420.h / sw420.cpp         # Classe de leitura do sensor SW-420
+│   ├── udpclient.h / udpclient.cpp # Classe de comunicação UDP
+│   └── main.cpp                    # Aplicação principal
+├── Makefile                        # Sistema de build
+├── Doxyfile                        # Configuração da documentação
+├── class_diagram.png               # Diagrama UML simplificado
+├── class_diagram_detailed.png      # Diagrama UML detalhado
+└── Documentation.pdf               # Documentação gerada
 ```
 
-### Diagramas UML
+### Diagrama Simplificado
 
-O projeto inclui dois diagramas UML em formato de blobs criados com **Graphviz**:
+O diagrama abaixo resume a estrutura principal do código:
 
-#### 1. **Diagrama Simplificado** (`class_diagram.gv` / `class_diagram.png`)
+![Diagrama Simplificado](class_diagram.png)
 
-Mostra a arquitetura principal com as duas classes principais e a aplicação:
+As duas classes principais se comunicam dentro do `main.cpp`:
 
-- **SW420**: Classe responsável pela leitura do sensor de vibração
-  - Atributos: `iio_path_`, `threshold_`
-  - Métodos: `init()`, `readRaw()`, `read()`
+- **SW420** – responsável pela leitura dos dados do sensor via IIO.  
+- **UDPClient** – gerencia a conexão e envio de dados pela rede.  
 
-- **UDPClient**: Classe responsável pela comunicação em rede
-  - Atributos: `server_ip_`, `server_port_`, `sensor_id_`, `sock_fd_`, `server_addr_`, `connected_`
-  - Métodos: `init()`, `sendData()`, `isConnected()`
+---
 
-- **main.cpp**: Aplicação principal que orquestra as duas classes
+## A Classe SW420
 
-#### 2. **Diagrama Detalhado** (`class_diagram_detailed.gv` / `class_diagram_detailed.png`)
+A classe `SW420` encapsula toda a lógica de leitura do sensor, facilitando o uso e abstraindo detalhes do hardware.
 
-Mostra uma visão mais completa do sistema incluindo:
+**Principais métodos:**
+- `init()` – inicializa e valida a leitura do sensor.  
+- `readRaw()` – retorna o valor bruto do ADC (0–65535).  
+- `read()` – realiza a leitura digital, indicando se há vibração.  
 
-- **SW420** (Sensor de Vibração) - conexão com o hardware
-- **UDPClient** (Cliente de Rede) - implementação da comunicação
-- **Aplicação Principal** (main.cpp) - fluxo de execução
-- **UDP Protocol** - formato CSV dos dados
-- **Hardware** - especificações do sensor SW-420
+**Atributos importantes:**
+- `iio_path_` – caminho do canal IIO (ex: `/sys/bus/iio/devices/iio:device0/in_voltage13_raw`).  
+- `threshold_` – valor limite para detectar vibração (padrão: 32000).  
 
-#### Editando os Diagramas
+Essa classe foi projetada para ser independente e reutilizável em outros projetos de leitura analógica.
 
-Os arquivos `.gv` (Graphviz) podem ser editados com qualquer editor de texto. Para regenerar os PNGs após editar:
+---
 
-```bash
-dot -Tpng class_diagram.gv -o class_diagram.png
-dot -Tpng class_diagram_detailed.gv -o class_diagram_detailed.png
+## A Classe UDPClient
+
+Responsável pela transmissão dos dados coletados para um servidor remoto via protocolo **UDP**.
+
+**Principais métodos:**
+- `init()` – inicializa o socket UDP.  
+- `sendData(value, unit)` – envia uma mensagem formatada contendo o valor do sensor.  
+- `isConnected()` – verifica o status da conexão.  
+
+**Atributos principais:**
+- `server_ip_` – IP do servidor.  
+- `server_port_` – porta UDP.  
+- `sensor_id_` – identificador único do sensor.  
+
+Essa abordagem permite que o código seja leve e direto, ideal para execução em sistemas embarcados Linux.
+
+---
+
+## Programa Principal
+
+O arquivo `main.cpp` conecta todos os elementos do projeto: inicializa o sensor, cria o cliente UDP e mantém um loop de leitura contínuo.
+
+A cada 500ms, o sistema lê o valor do sensor, verifica o estado e envia os dados ao servidor.
+
+Exemplo de saída esperada na execução:
+
 ```
-
-### Classe SW420
-
-Implementa o driver do sensor com encapsulamento orientado a objetos.
-
-**Métodos públicos:**
-- `SW420(const std::string &iio_path)`: Construtor que recebe o caminho do canal IIO
-- `void init()`: Inicializa e valida o sensor
-- `int readRaw()`: Retorna o valor bruto do ADC (0-65535)
-- `bool read()`: Interpretação digital (true = vibração detectada)
-
-**Atributos privados:**
-- `iio_path_`: Caminho do arquivo IIO
-- `threshold_`: Limiar de detecção (padrão: 32000)
-
-**Localização:** `src/sw420.h:19-60` e `src/sw420.cpp:1-68`
-
-### Classe UDPClient
-
-Implementa a comunicação UDP para envio de dados ao servidor central.
-
-**Métodos públicos:**
-- `UDPClient(server_ip, server_port, sensor_id)`: Construtor com configurações de rede
-- `bool init()`: Inicializa o socket UDP
-- `bool sendData(value, unit)`: Envia dados do sensor via UDP
-- `bool isConnected()`: Verifica status da conexão
-
-**Atributos privados:**
-- `server_ip_`: Endereço IP do servidor
-- `server_port_`: Porta do servidor
-- `sensor_id_`: Identificador único do sensor
-- `sock_fd_`: File descriptor do socket
-- `server_addr_`: Estrutura de endereço do servidor
-
-**Localização:** `src/udpclient.h` e `src/udpclient.cpp`
-
-### Programa Principal
-
-O arquivo `main.cpp` implementa:
-- Inicialização do sensor
-- Inicialização do cliente UDP
-- Loop de monitoramento contínuo (leitura a cada 500ms)
-- Exibição de valores brutos e estado de vibração
-- Envio de dados via UDP para servidor central
-- Tratamento de erros
-
-**Localização:** `src/main.cpp:1-93`
+[INFO] SW420 inicializado em /sys/bus/iio/devices/iio:device0/in_voltage13_raw
+[INFO] Cliente UDP inicializado para 192.168.42.10:5000
+[INFO] Monitorando sensor de vibração SW-420...
+[INFO] Sem vibração. Valor: 125
+[UDP] Dados enviados ao servidor
+[ALERTA] Vibração detectada! Valor: 45000
+[UDP] Dados enviados ao servidor
+```
 
 ---
 
 ## Protocolo de Comunicação UDP
 
-### Visão Geral
+Para manter o sistema leve e responsivo, foi escolhido o **UDP (User Datagram Protocol)**, ideal para aplicações em tempo real que não exigem confirmação de entrega.
 
-O sistema utiliza o protocolo **UDP (User Datagram Protocol)** para transmissão em tempo real dos dados do sensor para um servidor central de monitoramento. UDP foi escolhido por:
-- **Baixa latência**: Ideal para monitoramento em tempo real
-- **Simplicidade**: Sem overhead de estabelecimento de conexão
-- **Eficiência**: Menor consumo de recursos no sistema embarcado
+Os dados são enviados no formato **CSV**, o que facilita a integração com outras aplicações e ferramentas de análise.
 
-### Formato da Mensagem
-
-As mensagens são enviadas no formato **CSV (Comma-Separated Values)** para facilidade de parsing e baixo overhead.
-
-**Estrutura:**
+**Formato da mensagem:**
 ```
 SENSOR_ID,TIMESTAMP,VALUE,UNIT
 ```
 
-**Campos:**
-1. **SENSOR_ID** (string): Identificador único do sensor/grupo
-   - Exemplo: `SW420_VIBRATION`, `SW420_GRUPO_10`
-
-2. **TIMESTAMP** (string): Data e hora da leitura no formato ISO 8601
-   - Formato: `YYYY-MM-DDTHH:MM:SS`
-   - Exemplo: `2025-10-22T15:30:45`
-
-3. **VALUE** (int): Valor lido do sensor
-   - Faixa: 0-65535 (ADC de 16 bits)
-   - Exemplo: `45000`
-
-4. **UNIT** (string): Unidade de medida
-   - Padrão: `ADC` (valor bruto do conversor analógico-digital)
-   - Outros possíveis: `mV`, `g`, etc.
-
-### Exemplo de Mensagem
-
+**Exemplo real:**
 ```
 SW420_VIBRATION,2025-10-22T15:30:45,45000,ADC
 ```
 
-### Configuração de Rede
+**Campos:**
+- `SENSOR_ID`: Identificação do sensor.  
+- `TIMESTAMP`: Data/hora ISO 8601.  
+- `VALUE`: Valor do ADC (0–65535).  
+- `UNIT`: Unidade de medida (ADC, mV, etc.).  
 
-**No Kit STM32MP1-DK1:**
-- IP: `192.168.42.2` (padrão)
-- Porta de origem: Dinâmica (alocada pelo sistema)
+---
 
-**No Servidor (PC):**
-- IP: `192.168.42.10` (configurável em `src/main.cpp:38`)
-- Porta: `5000` (configurável em `src/main.cpp:39`)
-- Protocolo: UDP
+## Fluxo de Comunicação
 
-### Fluxo de Comunicação
+O diagrama abaixo mostra como os dados trafegam entre o kit e o servidor:
 
 ```
 ┌─────────────────┐                      ┌─────────────────┐
@@ -186,241 +160,110 @@ SW420_VIBRATION,2025-10-22T15:30:45,45000,ADC
 │  192.168.42.2   │                      │  192.168.42.10  │
 └────────┬────────┘                      └────────┬────────┘
          │                                        │
-         │  1. Leitura do sensor (500ms)         │
+         │ 1. Leitura do sensor (500ms)          │
          ├────────────────────────────────────>  │
-         │                                        │
-         │  2. Envia pacote UDP:                 │
-         │     SW420_VIBRATION,2025-...,45000,ADC│
+         │ 2. Envio UDP: SW420_VIBRATION,...     │
          ├────────────────────────────────────>  │
-         │                                        │
-         │  3. Servidor processa e exibe         │
-         │     (sem confirmação - UDP)           │
-         │                                        │
-         │  4. Aguarda 500ms                     │
-         │                                        │
-         │  5. Repete o ciclo                    │
-         └───────────────────────────────────>   │
+         │ 3. Servidor recebe e exibe            │
+         │ 4. Repetição contínua                 │
+         └────────────────────────────────────>  │
 ```
-
-### Implementação
-
-A classe `UDPClient` encapsula toda a lógica de comunicação UDP:
-
-```cpp
-// Configuração
-UDPClient udp_client("192.168.42.10", 5000, "SW420_VIBRATION");
-
-// Inicialização
-udp_client.init();
-
-// Envio de dados
-int sensor_value = sensor.readRaw();
-udp_client.sendData(sensor_value, "ADC");
-```
-
-### Configuração do Servidor
-
-Para receber os dados, execute um servidor UDP no PC. Exemplo em Python no arquivo udp_server.py
-
-### Personalização
-
-Para alterar as configurações de rede, edite o arquivo `src/main.cpp`:
-
-```cpp
-// Linha 38: IP do servidor
-const std::string server_ip = "192.168.42.10";
-
-// Linha 39: Porta do servidor
-const int server_port = 5000;
-
-// Linha 40: Identificador do sensor
-const std::string sensor_id = "SW420_VIBRATION";
-```
-
----
-
-## Galeria de Imagens
-
-### Interface da Aplicação
-
-#### Tela Principal
-![Interface Principal](./demonstracao_kit_interface.png)
-
-#### Tela de Configurações
-![Tela de Configurações](./demonstracao_kit_interface_configuracoes.png)
-
-#### Tela de Estatísticas
-![Tela de Estatísticas](./demonstracao_kit_interface_estatisticas.png)
-
-#### Saída do Terminal
-![Saída do Terminal](./demonstracao_kit_terminal.png)
-
-### Diagramas de Arquitetura
-
-#### Diagrama de Classes Simplificado
-![Diagrama de Classes Simplificado](./class_diagram.png)
-
-#### Diagrama de Classes Detalhado
-![Diagrama de Classes Detalhado](./class_diagram_detailed.png)
 
 ---
 
 ## Requisitos do Sistema
 
 ### Hardware
-
-- **Kit de desenvolvimento:** STM32MP1-DK1
-- **Sensor:** SW-420 Vibration Sensor
+- **Kit:** STM32MP1-DK1  
+- **Sensor:** SW-420  
 - **Conexões:**
-  - VCC → 3.3V (pino CN16)
-  - GND → GND (pino CN16)
-  - AOUT → ADC (ex: in_voltage13_raw via Arduino D4)
-
+  - VCC → 3.3V  
+  - GND → GND  
+  - AOUT → ADC (ex: in_voltage13_raw)
 
 ### Software
-
-#### Na Máquina de Desenvolvimento
-
-- **Sistema operacional:** Linux (recomendado: Ubuntu 20.04 ou superior)
-- **Toolchain ARM:** `arm-buildroot-linux-gnueabihf_sdk-buildroot`
-- **Ferramentas:**
-  - `make`
-  - `ssh` e `scp`
-  - `doxygen` (para gerar documentação)
-  - `pdflatex` (para compilar PDF da documentação)
-
-#### No Kit STM32MP1-DK1
-
-- Linux embarcado (pré-configurado)
-- Interface IIO habilitada
-- Acesso via rede (IP padrão: `192.168.42.2`)
+- **Sistema operacional:** Linux embarcado (no kit)  
+- **Toolchain:** `arm-buildroot-linux-gnueabihf`  
+- **Ferramentas auxiliares:** `make`, `ssh`, `scp`, `doxygen`, `pdflatex`
 
 ---
 
-## Instruções de Compilação
+## Compilação e Deploy
 
-### 1. Preparação do Ambiente
-
-Certifique-se de que a toolchain ARM está instalada e acessível no diretório do projeto:
+Antes de compilar, verifique se a toolchain ARM está configurada corretamente:
 
 ```bash
-# Verifique se o compilador existe
 ls arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-g++
 ```
 
-### 2. Limpeza (Opcional)
-
-Remove arquivos de compilação anteriores:
-
+**Limpeza opcional:**
 ```bash
 make clean
 ```
 
-### 3. Compilação
-
-Compila o código-fonte para a arquitetura ARM:
-
+**Compilação:**
 ```bash
 make
 ```
 
-**Saída esperada:**
+Saída esperada:
 ```
 [INFO] Compilando src/sw420.cpp...
 [INFO] Compilando src/main.cpp...
-[INFO] Linkando binário para placa...
 [OK] Binário 'VibrationMonitor' gerado com sucesso!
 ```
 
-O executável `VibrationMonitor` será criado no diretório raiz do projeto.
-
----
-
-## Instruções de Execução
-
-### 1. Identificação do Canal ADC
-
-Antes de executar pela primeira vez, identifique qual canal IIO corresponde ao pino conectado ao sensor:
-
-```bash
-# Conecte-se à placa
-ssh root@192.168.42.2
-
-# Liste os canais disponíveis
-ls /sys/bus/iio/devices/iio:device0/in_voltage*_raw
-
-# Conecte o pino do sensor ao GND e teste cada canal
-cat /sys/bus/iio/devices/iio:device0/in_voltage0_raw
-cat /sys/bus/iio/devices/iio:device0/in_voltage1_raw
-# ... continue até encontrar o canal que retorna 0
-```
-
-O canal que retornar valor zero é o correto. Atualize o caminho em `src/main.cpp:32`.
-
-### 2. Deploy para a Placa
-
-Envia o executável para o kit via SCP e ajusta permissões:
-
+**Deploy para a placa:**
 ```bash
 make deploy
 ```
 
-**Requisitos:**
-- Placa conectada na mesma rede
-- IP configurado: `192.168.42.2`
-- SSH habilitado (usuário `root`, senha `root`)
+Isso enviará o binário para o diretório remoto via SCP.
 
-### 3. Execução no Kit
+---
 
-Conecte-se à placa via SSH e execute o programa:
+## Execução no Kit
+
+Conecte-se ao kit via SSH:
 
 ```bash
-# Acesso via SSH
 ssh root@192.168.42.2
+```
 
-# Navegue até o diretório (se necessário)
-cd /root
-
-# Execute o programa
+Execute o programa:
+```bash
 ./VibrationMonitor
 ```
 
-**Saída esperada:**
-```
-[INFO] SW420 inicializado em /sys/bus/iio/devices/iio:device0/in_voltage13_raw
-[INFO] Cliente UDP inicializado para 192.168.42.10:5000
-[INFO] Monitorando sensor de vibração SW-420...
-[INFO] Pressione Ctrl+C para encerrar
+O sistema começará a monitorar e enviar os dados periodicamente.  
+Para encerrar, pressione `Ctrl+C`.
 
-[INFO] Sem vibração. Valor: 125
-[UDP] Dados enviados ao servidor
-[INFO] Sem vibração. Valor: 150
-[UDP] Dados enviados ao servidor
-[ALERTA] Vibração detectada! Valor: 45000
-[UDP] Dados enviados ao servidor
-[ALERTA] Vibração detectada! Valor: 52000
-[UDP] Dados enviados ao servidor
-[INFO] Sem vibração. Valor: 200
-[UDP] Dados enviados ao servidor
-```
+---
 
-### 4. Configuração do Servidor UDP (PC)
+## Configuração do Servidor
 
-Antes de executar o programa na placa, configure um servidor UDP no PC para receber os dados:
+No computador, abra um servidor UDP para receber as leituras.
 
-**Opção 1: Servidor Python simples**
-
-Execute:
+**Em Python:**
 ```bash
 python3 udp_server.py
 ```
 
-**Opção 2: Usar netcat (nc)**
-
+**Ou usando netcat (nc):**
 ```bash
 nc -ul 5000
 ```
 
-### 5. Encerramento
+Assim, cada pacote recebido do STM32MP1 aparecerá no terminal.
 
-Pressione `Ctrl+C` para interromper o programa.
+---
+
+## Conclusão
+
+O **Monitor de Vibração STM32MP1** mostrou, na prática, como é possível unir hardware e software de forma simples e funcional.
+A partir de um sensor acessível e uma placa poderosa como a STM32MP1, foi possível construir um sistema que lê dados físicos, interpreta eventos e envia tudo em tempo real para um servidor de monitoramento.
+
+Mais do que um experimento técnico, o projeto representa um exercício completo de engenharia: envolve eletrônica, programação embarcada, redes e análise de dados.
+A estrutura modular facilita adaptações — seja para outros sensores, novos protocolos ou integrações com plataformas de IoT.
+
+No fim, o resultado é um sistema leve, direto e didático, que ajuda a visualizar o mundo físico em forma de informação digital — um pequeno passo, mas cheio de possibilidades para quem gosta de explorar a fronteira entre o **hardware e o software**.
