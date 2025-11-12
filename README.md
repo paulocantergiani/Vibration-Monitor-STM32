@@ -8,22 +8,6 @@ Sistema embarcado de monitoramento de vibrações desenvolvido para o kit **STM3
 
 Este sistema integra o projeto **Monitoramento Inteligente de Carga**, que visa detectar tentativas de violação, movimentação indevida ou comprometimento de integridade de cargas sensíveis durante transporte.
 
----
-
-## Demonstração do Kit
-
-### Fotos da Montagem
-
-#### Vista Geral do Kit STM32MP1-DK1 com Sensor SW-420
-
-![Demonstração Kit - Visão 1](./demonstração_kit_entrega4.png)
-
-#### Vista Alternativa da Montagem
-
-![Demonstração Kit - Visão 2](./demonstração_kit_entrega4.1.png)
-
----
-
 ### Sensor SW-420
 
 O **SW-420** é um sensor de vibração digital/analógico baseado em um interruptor de esfera condutora. Quando ocorre vibração, a esfera movimenta-se e altera o estado elétrico do sensor.
@@ -75,8 +59,6 @@ Mostra a arquitetura principal com as duas classes principais e a aplicação:
 
 - **main.cpp**: Aplicação principal que orquestra as duas classes
 
-![Diagrama de Classes Simplificado](./class_diagram.png)
-
 #### 2. **Diagrama Detalhado** (`class_diagram_detailed.gv` / `class_diagram_detailed.png`)
 
 Mostra uma visão mais completa do sistema incluindo:
@@ -86,8 +68,6 @@ Mostra uma visão mais completa do sistema incluindo:
 - **Aplicação Principal** (main.cpp) - fluxo de execução
 - **UDP Protocol** - formato CSV dos dados
 - **Hardware** - especificações do sensor SW-420
-
-![Diagrama de Classes Detalhado](./class_diagram_detailed.png)
 
 #### Editando os Diagramas
 
@@ -256,6 +236,26 @@ const int server_port = 5000;
 // Linha 40: Identificador do sensor
 const std::string sensor_id = "SW420_VIBRATION";
 ```
+
+---
+
+## Galeria de Imagens
+
+### Demonstração do Kit
+
+#### Vista Geral - Ângulo 1
+![Demonstração Kit - Visão 1](./demonstração_kit_entrega4.png)
+
+#### Vista Geral - Ângulo 2
+![Demonstração Kit - Visão 2](./demonstração_kit_entrega4.1.png)
+
+### Diagramas de Arquitetura
+
+#### Diagrama de Classes Simplificado
+![Diagrama de Classes Simplificado](./class_diagram.png)
+
+#### Diagrama de Classes Detalhado
+![Diagrama de Classes Detalhado](./class_diagram_detailed.png)
 
 ---
 
