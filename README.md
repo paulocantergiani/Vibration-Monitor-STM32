@@ -241,13 +241,19 @@ const std::string sensor_id = "SW420_VIBRATION";
 
 ## Galeria de Imagens
 
-### Demonstração do Kit
+### Interface da Aplicação
 
-#### Vista Geral - Ângulo 1
-![Demonstração Kit - Visão 1](./demonstração_kit_entrega4.png)
+#### Tela Principal
+![Interface Principal](./demonstracao_kit_interface.png)
 
-#### Vista Geral - Ângulo 2
-![Demonstração Kit - Visão 2](./demonstração_kit_entrega4.1.png)
+#### Tela de Configurações
+![Tela de Configurações](./demonstracao_kit_interface_configuracoes.png)
+
+#### Tela de Estatísticas
+![Tela de Estatísticas](./demonstracao_kit_interface_estatisticas.png)
+
+#### Saída do Terminal
+![Saída do Terminal](./demonstracao_kit_terminal.png)
 
 ### Diagramas de Arquitetura
 
