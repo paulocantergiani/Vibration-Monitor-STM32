@@ -23,7 +23,7 @@ No projeto, o sensor é alimentado a **3.3V** para garantir compatibilidade com 
 
 O sistema é dividido em três partes principais: o **sensor de vibração**, o **software embarcado** e o **servidor remoto** que recebe os dados.
 
-![Diagrama de Arquitetura](class_diagram_detailed.png)
+![Diagrama de Arquitetura](imagens/class_diagram_detailed.png)
 
 1. O sensor SW-420 envia sinais analógicos ao ADC do STM32MP1.  
 2. O software embarcado lê os valores por meio da interface IIO.  
@@ -62,7 +62,7 @@ Vibration-Monitor-STM32/
 
 O diagrama abaixo resume a estrutura principal do código:
 
-![Diagrama Simplificado](class_diagram.png)
+![Diagrama Simplificado](imagens/class_diagram.png)
 
 As duas classes principais se comunicam dentro do `main.cpp`:
 
