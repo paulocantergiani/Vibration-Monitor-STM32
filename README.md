@@ -235,8 +235,14 @@ Execute o programa:
 ./VibrationMonitor
 ```
 
-O sistema começará a monitorar e enviar os dados periodicamente.  
+O sistema começará a monitorar e enviar os dados periodicamente.
 Para encerrar, pressione `Ctrl+C`.
+
+### Saída do Terminal
+
+Abaixo está a visualização do monitor em execução no kit STM32MP1:
+
+![Terminal do Monitor de Vibração](imagens/demonstracao_kit_terminal.png)
 
 ---
 
@@ -255,6 +261,30 @@ nc -ul 5000
 ```
 
 Assim, cada pacote recebido do STM32MP1 aparecerá no terminal.
+
+---
+
+## Interface de Monitoramento
+
+O projeto inclui uma interface gráfica intuitiva para visualizar os dados em tempo real. A aplicação foi desenvolvida em Python com Tkinter, permitindo monitoramento visual das vibrações detectadas.
+
+### Interface Principal
+
+A tela principal exibe o status atual do monitoramento, com indicadores de vibração e valores em tempo real:
+
+![Interface Principal do Monitor](imagens/demonstracao_kit_interface.png)
+
+### Seção de Estatísticas
+
+Visualize gráficos e estatísticas detalhadas sobre as vibrações coletadas:
+
+![Estatísticas e Gráficos](imagens/demonstracao_kit_interface_estatisticas.png)
+
+### Seção de Configurações
+
+Configure parâmetros do servidor UDP, IP e porta de conexão:
+
+![Configurações do Sistema](imagens/demonstracao_kit_interface_configuracoes.png)
 
 ---
 
