@@ -286,6 +286,12 @@ Configure parâmetros do servidor UDP, IP e porta de conexão:
 
 ![Configurações do Sistema](imagens/demonstracao_kit_interface_configuracoes.png)
 
+### Exportação em XLSX
+
+Exporte os dados coletados em formato Excel para análise e documentação:
+
+![Exportação em XLSX](imagens/demonstracao_kit_xlxs_interface.png)
+
 ---
 
 ## Conclusão
